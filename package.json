@@ -10,9 +10,12 @@
     "lint": "tslint -p tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "lib/"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pshihn/rough-notation.git"
+    "url": "git+https://github.com/exercism/rough-notation.git"
   },
   "keywords": [
     "annotate",
@@ -22,9 +25,9 @@
   "author": "Preet Shihn",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pshihn/rough-notation/issues"
+    "url": "https://github.com/exercism/rough-notation/issues"
   },
-  "homepage": "https://github.com/pshihn/rough-notation#readme",
+  "homepage": "https://github.com/exercism/rough-notation#readme",
   "devDependencies": {
     "rollup": "^2.32.1",
     "rollup-plugin-node-resolve": "^5.2.0",

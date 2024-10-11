@@ -1,4 +1,4 @@
-export const SVG_NS = 'http://www.w3.org/2000/svg';
+export const SVG_NS = "http://www.w3.org/2000/svg";
 
 export const DEFAULT_ANIMATION_DURATION = 800;
 
@@ -9,15 +9,23 @@ export interface Rect {
   h: number;
 }
 
-export type RoughAnnotationType = 'underline' | 'box' | 'circle' | 'highlight' | 'strike-through' | 'crossed-off' | 'bracket';
+export type RoughAnnotationType =
+  | "underline"
+  | "box"
+  | "circle"
+  | "highlight"
+  | "strike-through"
+  | "crossed-off"
+  | "bracket";
 export type FullPadding = [number, number, number, number];
 export type RoughPadding = number | [number, number] | FullPadding;
-export type BracketType = 'left' | 'right' | 'top' | 'bottom';
+export type BracketType = "left" | "right" | "top" | "bottom";
 
 export interface RoughAnnotationConfig extends RoughAnnotationConfigBase {
   type: RoughAnnotationType;
   multiline?: boolean;
   rtl?: boolean;
+  roughness?: number;
 }
 
 export interface RoughAnnotationConfigBase {

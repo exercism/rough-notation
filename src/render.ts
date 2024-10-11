@@ -1,38 +1,49 @@
-import { Rect, RoughAnnotationConfig, SVG_NS, FullPadding, BracketType } from './model.js';
-import { ResolvedOptions, OpSet } from 'roughjs/bin/core';
-import { line, rectangle, ellipse, linearPath } from 'roughjs/bin/renderer';
-import { Point } from 'roughjs/bin/geometry';
+import {
+  Rect,
+  RoughAnnotationConfig,
+  SVG_NS,
+  FullPadding,
+  BracketType,
+} from "./model.js";
+import { ResolvedOptions, OpSet } from "roughjs/bin/core";
+import { line, rectangle, ellipse, linearPath } from "roughjs/bin/renderer";
+import { Point } from "roughjs/bin/geometry";
 
-type RoughOptionsType = 'highlight' | 'single' | 'double';
+type RoughOptionsType = "highlight" | "single" | "double";
 
-function getOptions(type: RoughOptionsType, seed: number): ResolvedOptions {
+function getOptions(
+  type: RoughOptionsType,
+  seed: number,
+  roughness?: number
+): ResolvedOptions {
   return {
     maxRandomnessOffset: 2,
-    roughness: type === 'highlight' ? 3 : 1.5,
+    roughness: roughness ? roughness : type === "highlight" ? 3 : 1.5,
     bowing: 1,
-    stroke: '#000',
+    stroke: "#000",
     strokeWidth: 1.5,
     curveTightness: 0,
     curveFitting: 0.95,
     curveStepCount: 9,
-    fillStyle: 'hachure',
+    fillStyle: "hachure",
     fillWeight: -1,
     hachureAngle: -41,
     hachureGap: -1,
     dashOffset: -1,
     dashGap: -1,
     zigzagOffset: -1,
-    combineNestedSvgPaths: false,
-    disableMultiStroke: type !== 'double',
+    disableMultiStroke: type !== "double",
     disableMultiStrokeFill: false,
-    seed
+    preserveVertices: false,
+    fillShapeRoughnessGain: 0.5,
+    seed,
   };
 }
 
 function parsePadding(config: RoughAnnotationConfig): FullPadding {
   const p = config.padding;
-  if (p || (p === 0)) {
-    if (typeof p === 'number') {
+  if (p || p === 0) {
+    if (typeof p === "number") {
       return [p, p, p, p];
     } else if (Array.isArray(p)) {
       const pa = p as number[];
@@ -55,17 +66,25 @@ function parsePadding(config: RoughAnnotationConfig): FullPadding {
   return [5, 5, 5, 5];
 }
 
-export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAnnotationConfig, animationGroupDelay: number, animationDuration: number, seed: number) {
+export function renderAnnotation(
+  svg: SVGSVGElement,
+  rect: Rect,
+  config: RoughAnnotationConfig,
+  animationGroupDelay: number,
+  animationDuration: number,
+  seed: number
+) {
   const opList: OpSet[] = [];
   let strokeWidth = config.strokeWidth || 2;
   const padding = parsePadding(config);
-  const animate = (config.animate === undefined) ? true : (!!config.animate);
+  const animate = config.animate === undefined ? true : !!config.animate;
   const iterations = config.iterations || 2;
   const rtl = config.rtl ? 1 : 0;
-  const o = getOptions('single', seed);
+  const o = getOptions("single", seed, config.roughness);
+  console.log("o", o);
 
   switch (config.type) {
-    case 'underline': {
+    case "underline": {
       const y = rect.y + rect.h + padding[2];
       for (let i = rtl; i < iterations + rtl; i++) {
         if (i % 2) {
@@ -76,8 +95,8 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       }
       break;
     }
-    case 'strike-through': {
-      const y = rect.y + (rect.h / 2);
+    case "strike-through": {
+      const y = rect.y + rect.h / 2;
       for (let i = rtl; i < iterations + rtl; i++) {
         if (i % 2) {
           opList.push(line(rect.x + rect.w, y, rect.x, y, o));
@@ -87,7 +106,7 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       }
       break;
     }
-    case 'box': {
+    case "box": {
       const x = rect.x - padding[3];
       const y = rect.y - padding[0];
       const width = rect.w + (padding[1] + padding[3]);
@@ -97,8 +116,12 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       }
       break;
     }
-    case 'bracket': {
-      const brackets: BracketType[] = Array.isArray(config.brackets) ? config.brackets : (config.brackets ? [config.brackets] : ['right']);
+    case "bracket": {
+      const brackets: BracketType[] = Array.isArray(config.brackets)
+        ? config.brackets
+        : config.brackets
+        ? [config.brackets]
+        : ["right"];
       const lx = rect.x - padding[3] * 2;
       const rx = rect.x + rect.w + padding[1] * 2;
       const ty = rect.y - padding[0] * 2;
@@ -106,36 +129,36 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       for (const br of brackets) {
         let points: Point[];
         switch (br) {
-          case 'bottom':
+          case "bottom":
             points = [
               [lx, rect.y + rect.h],
               [lx, by],
               [rx, by],
-              [rx, rect.y + rect.h]
+              [rx, rect.y + rect.h],
             ];
             break;
-          case 'top':
+          case "top":
             points = [
               [lx, rect.y],
               [lx, ty],
               [rx, ty],
-              [rx, rect.y]
+              [rx, rect.y],
             ];
             break;
-          case 'left':
+          case "left":
             points = [
               [rect.x, ty],
               [lx, ty],
               [lx, by],
-              [rect.x, by]
+              [rect.x, by],
             ];
             break;
-          case 'right':
+          case "right":
             points = [
               [rect.x + rect.w, ty],
               [rx, ty],
               [rx, by],
-              [rect.x + rect.w, by]
+              [rect.x + rect.w, by],
             ];
             break;
         }
@@ -145,7 +168,7 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       }
       break;
     }
-    case 'crossed-off': {
+    case "crossed-off": {
       const x = rect.x;
       const y = rect.y;
       const x2 = x + rect.w;
@@ -166,14 +189,14 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       }
       break;
     }
-    case 'circle': {
-      const doubleO = getOptions('double', seed);
+    case "circle": {
+      const doubleO = getOptions("double", seed, config.roughness);
       const width = rect.w + (padding[1] + padding[3]);
       const height = rect.h + (padding[0] + padding[2]);
-      const x = rect.x - padding[3] + (width / 2);
-      const y = rect.y - padding[0] + (height / 2);
+      const x = rect.x - padding[3] + width / 2;
+      const y = rect.y - padding[0] + height / 2;
       const fullItr = Math.floor(iterations / 2);
-      const singleItr = iterations - (fullItr * 2);
+      const singleItr = iterations - fullItr * 2;
       for (let i = 0; i < fullItr; i++) {
         opList.push(ellipse(x, y, width, height, doubleO));
       }
@@ -182,10 +205,10 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       }
       break;
     }
-    case 'highlight': {
-      const o = getOptions('highlight', seed);
+    case "highlight": {
+      const o = getOptions("highlight", seed, config.roughness);
       strokeWidth = rect.h * 0.95;
-      const y = rect.y + (rect.h / 2);
+      const y = rect.y + rect.h / 2;
       for (let i = rtl; i < iterations + rtl; i++) {
         if (i % 2) {
           opList.push(line(rect.x + rect.w, y, rect.x, y, o));
@@ -202,14 +225,15 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
     const lengths: number[] = [];
     const pathElements: SVGPathElement[] = [];
     let totalLength = 0;
-    const setAttr = (p: SVGPathElement, an: string, av: string) => p.setAttribute(an, av);
+    const setAttr = (p: SVGPathElement, an: string, av: string) =>
+      p.setAttribute(an, av);
 
     for (const d of pathStrings) {
-      const path = document.createElementNS(SVG_NS, 'path');
-      setAttr(path, 'd', d);
-      setAttr(path, 'fill', 'none');
-      setAttr(path, 'stroke', config.color || 'currentColor');
-      setAttr(path, 'stroke-width', `${strokeWidth}`);
+      const path = document.createElementNS(SVG_NS, "path");
+      setAttr(path, "d", d);
+      setAttr(path, "fill", "none");
+      setAttr(path, "stroke", config.color || "currentColor");
+      setAttr(path, "stroke-width", `${strokeWidth}`);
       if (animate) {
         const length = path.getTotalLength();
         lengths.push(length);
@@ -224,7 +248,9 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
       for (let i = 0; i < pathElements.length; i++) {
         const path = pathElements[i];
         const length = lengths[i];
-        const duration = totalLength ? (animationDuration * (length / totalLength)) : 0;
+        const duration = totalLength
+          ? animationDuration * (length / totalLength)
+          : 0;
         const delay = animationGroupDelay + durationOffset;
         const style = path.style;
         style.strokeDashoffset = `${length}`;
@@ -239,20 +265,20 @@ export function renderAnnotation(svg: SVGSVGElement, rect: Rect, config: RoughAn
 function opsToPath(opList: OpSet[]): string[] {
   const paths: string[] = [];
   for (const drawing of opList) {
-    let path = '';
+    let path = "";
     for (const item of drawing.ops) {
       const data = item.data;
       switch (item.op) {
-        case 'move':
+        case "move":
           if (path.trim()) {
             paths.push(path.trim());
           }
           path = `M${data[0]} ${data[1]} `;
           break;
-        case 'bcurveTo':
+        case "bcurveTo":
           path += `C${data[0]} ${data[1]}, ${data[2]} ${data[3]}, ${data[4]} ${data[5]} `;
           break;
-        case 'lineTo':
+        case "lineTo":
           path += `L${data[0]} ${data[1]} `;
           break;
       }

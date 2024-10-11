@@ -81,7 +81,6 @@ export function renderAnnotation(
   const iterations = config.iterations || 2;
   const rtl = config.rtl ? 1 : 0;
   const o = getOptions("single", seed, config.roughness);
-  console.log("o", o);
 
   switch (config.type) {
     case "underline": {
